@@ -6,7 +6,7 @@
 
     <groupId>com.krangpq</groupId>
     <artifactId>EconomyShop</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <packaging>jar</packaging>
 
     <name>EconomyShop</name>
@@ -63,6 +63,14 @@
             <artifactId>spigot-api</artifactId>
             <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+
+        <!-- ToolEnhancer API 추가 (이 부분 추가!) -->
+        <dependency>
+            <groupId>com.krangpq</groupId>
+            <artifactId>ToolEnhancer</artifactId>
+            <version>1.0.8</version>
+            <scope>provided</scope>  <!-- 컴파일만 필요, 런타임엔 서버의 실제 JAR 사용 -->
         </dependency>
     </dependencies>
 </project>

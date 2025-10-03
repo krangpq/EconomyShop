@@ -3,6 +3,8 @@ package com.krangpq.economyshop;
 import com.krangpq.economyshop.api.EconomyShopAPI;
 import com.krangpq.economyshop.commands.*;
 import com.krangpq.economyshop.gui.GuiSession;
+import com.krangpq.economyshop.gui.MainShopGui;        // ← 추가 필요!
+import com.krangpq.economyshop.gui.CategoryShopGui;   // ← 추가 필요!
 import com.krangpq.economyshop.integration.IntegrationManager;
 import com.krangpq.economyshop.managers.EconomyManager;
 import com.krangpq.economyshop.managers.ShopManager;
@@ -19,6 +21,8 @@ public class EconomyShop extends JavaPlugin {
     private IntegrationManager integrationManager;
     private GuiSession guiSession;
     private EconomyShopAPI api;
+    private MainShopGui mainShopGui;
+    private CategoryShopGui categoryShopGui;
 
     @Override
     public void onEnable() {
@@ -34,6 +38,10 @@ public class EconomyShop extends JavaPlugin {
         this.integrationManager = new IntegrationManager(this);
         this.guiSession = new GuiSession();
 
+        // GUI 초기화 (한 번만!)
+        this.mainShopGui = new MainShopGui(this);
+        this.categoryShopGui = new CategoryShopGui(this);
+
         // API 초기화
         this.api = new EconomyShopAPI(this);
 
@@ -45,6 +53,15 @@ public class EconomyShop extends JavaPlugin {
 
         getLogger().info("EconomyShop 플러그인이 활성화되었습니다!");
         getLogger().info("작성자: KrangPQ");
+    }
+
+    // Getter 추가
+    public MainShopGui getMainShopGui() {
+        return mainShopGui;
+    }
+
+    public CategoryShopGui getCategoryShopGui() {
+        return categoryShopGui;
     }
 
     @Override

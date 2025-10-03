@@ -131,9 +131,8 @@ public class MainShopGui implements Listener {
             player.closeInventory();
             plugin.getGuiSession().endSession(player);
 
-            // 카테고리 상점 열기
-            CategoryShopGui categoryGui = new CategoryShopGui(plugin);
-            categoryGui.open(player, category);
+            // 카테고리 상점 열기 (기존 인스턴스 사용)
+            plugin.getCategoryShopGui().open(player, category);
         }
     }
 

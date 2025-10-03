@@ -145,6 +145,29 @@ public class CategoryShopGui implements Listener {
             return;
         }
 
+        // 클릭한 인벤토리가 상점 GUI인지 확인
+        if (e.getClickedInventory() == null) {
+            return;
+        }
+
+        // 플레이어 자신의 인벤토리를 클릭한 경우
+        if (e.getClickedInventory().equals(player.getInventory())) {
+            // Shift+우클릭만 판매 가능
+            if (e.isShiftClick() && e.isRightClick()) {
+                ItemStack clicked = e.getCurrentItem();
+                if (clicked != null && clicked.getType() != Material.AIR) {
+                    String category = playerCategory.get(player.getName());
+                    if (category != null) {
+                        e.setCancelled(true);
+                        handleSellAll(player, clicked.getType(), category);
+                    }
+                }
+            }
+            // 다른 클릭은 모두 허용 (아이템 이동 가능)
+            return;
+        }
+
+        // 여기서부터는 상점 GUI 클릭만 처리
         e.setCancelled(true);
 
         ItemStack clicked = e.getCurrentItem();
@@ -156,12 +179,11 @@ public class CategoryShopGui implements Listener {
             plugin.getGuiSession().endSession(player);
             playerCategory.remove(player.getName());
 
-            MainShopGui mainGui = new MainShopGui(plugin);
-            mainGui.open(player);
+            plugin.getMainShopGui().open(player); // ← 수정
             return;
         }
 
-        // 슬롯 45 이상은 네비게이션 영역
+        // 슬롯 45 이상은 네비게이션 영역 (처리 안 함)
         if (e.getSlot() >= 45) {
             return;
         }
@@ -170,21 +192,15 @@ public class CategoryShopGui implements Listener {
         if (category == null) return;
 
         // 좌클릭: 1개 구매
-        if (e.isLeftClick() && !e.isShiftClick()) {
+        if (e.getClick().toString().equals("LEFT")) {
             handlePurchase(player, clicked, 1, category);
         }
         // 우클릭: 64개 구매
-        else if (e.isRightClick() && !e.isShiftClick()) {
+        else if (e.getClick().toString().equals("RIGHT")) {
             handlePurchase(player, clicked, 64, category);
         }
-        // Shift+좌클릭: 해당 슬롯 아이템 판매
-        else if (e.isLeftClick() && e.isShiftClick()) {
-            handleSell(player, clicked, clicked.getAmount(), category);
-        }
-        // Shift+우클릭: 인벤토리 내 동일 아이템 전체 판매
-        else if (e.isRightClick() && e.isShiftClick()) {
-            handleSellAll(player, clicked.getType(), category);
-        }
+        // Shift+좌클릭: 해당 아이템 전체 판매 (구현 안 함)
+        // Shift+우클릭: 상점 GUI에서는 동작 안 함
     }
 
     /**
@@ -193,7 +209,6 @@ public class CategoryShopGui implements Listener {
     private void handlePurchase(Player player, ItemStack displayItem, int amount, String category) {
         // 상점 아이템 찾기
         ShopItem shopItem = findShopItem(displayItem, category);
-
         if (shopItem == null) {
             // 커스텀 아이템 또는 연동 아이템 확인
             handleSpecialPurchase(player, displayItem, amount);
@@ -241,43 +256,66 @@ public class CategoryShopGui implements Listener {
      * 특별 아이템 구매 (커스텀/연동)
      */
     private void handleSpecialPurchase(Player player, ItemStack displayItem, int amount) {
-        // 커스텀 아이템 확인
+        // 1. 커스텀 아이템 확인 (먼저 체크)
         for (CustomItem custom : plugin.getShopManager().getCustomItems()) {
-            if (custom.getItem().isSimilar(displayItem)) {
-                double totalPrice = custom.getPrice() * amount;
+            ItemStack customItem = custom.getItem();
 
-                if (!plugin.getEconomyManager().has(player.getUniqueId(), totalPrice)) {
-                    String msg = plugin.getMessage("insufficient-balance")
-                            .replace("{amount}", plugin.getEconomyManager().format(totalPrice));
-                    player.sendMessage(plugin.getPrefix() + msg);
-                    playSound(player, "error");
-                    return;
+            // Material과 DisplayName으로 비교
+            if (customItem.getType() == displayItem.getType()) {
+                if (customItem.hasItemMeta() && displayItem.hasItemMeta()) {
+                    if (customItem.getItemMeta().getDisplayName()
+                            .equals(displayItem.getItemMeta().getDisplayName())) {
+
+                        double totalPrice = custom.getPrice() * amount;
+
+                        if (!plugin.getEconomyManager().has(player.getUniqueId(), totalPrice)) {
+                            String msg = plugin.getMessage("insufficient-balance")
+                                    .replace("{amount}", plugin.getEconomyManager().format(totalPrice));
+                            player.sendMessage(plugin.getPrefix() + msg);
+                            playSound(player, "error");
+                            return;
+                        }
+
+                        if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
+                            ItemStack item = custom.getItem().clone();
+                            item.setAmount(amount);
+                            player.getInventory().addItem(item);
+
+                            String itemName = item.hasItemMeta() && item.getItemMeta().hasDisplayName()
+                                    ? item.getItemMeta().getDisplayName()
+                                    : item.getType().name();
+
+                            String msg = plugin.getMessage("purchase-success")
+                                    .replace("{item}", itemName)
+                                    .replace("{amount}", String.valueOf(amount))
+                                    .replace("{price}", plugin.getEconomyManager().format(totalPrice));
+                            player.sendMessage(plugin.getPrefix() + msg);
+                            playSound(player, "buy");
+                        }
+                        return; // 구매 완료, 종료
+                    }
                 }
-
-                if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
-                    ItemStack item = custom.getItem().clone();
-                    item.setAmount(amount);
-                    player.getInventory().addItem(item);
-
-                    String itemName = item.hasItemMeta() && item.getItemMeta().hasDisplayName()
-                            ? item.getItemMeta().getDisplayName()
-                            : item.getType().name();
-
-                    String msg = plugin.getMessage("purchase-success")
-                            .replace("{item}", itemName)
-                            .replace("{amount}", String.valueOf(amount))
-                            .replace("{price}", plugin.getEconomyManager().format(totalPrice));
-                    player.sendMessage(plugin.getPrefix() + msg);
-                    playSound(player, "buy");
-                }
-                return;
             }
         }
 
-        // ToolEnhancer 강화석 확인
+        // 2. ToolEnhancer 강화석 확인
         if (plugin.getIntegrationManager().hasToolEnhancer()) {
             ToolEnhancerIntegration te = plugin.getIntegrationManager().getToolEnhancer();
-            if (te.isEnhancementStone(displayItem)) {
+
+            // GUI 표시용 아이템인지 확인 (Lore에 "[ToolEnhancer 연동]"이 있으면)
+            boolean isShopGuiItem = false;
+            if (displayItem.hasItemMeta() && displayItem.getItemMeta().hasLore()) {
+                List<String> lore = displayItem.getItemMeta().getLore();
+                for (String line : lore) {
+                    if (line.contains("[ToolEnhancer 연동]")) {
+                        isShopGuiItem = true;
+                        break;
+                    }
+                }
+            }
+
+            // GUI 아이템이고 강화석이면 구매 처리
+            if (isShopGuiItem && te.isEnhancementStone(displayItem)) {
                 double price = plugin.getConfig().getDouble("integrations.toolenhancer.items.enhancement-stone.price", 5000);
                 double totalPrice = price * amount;
 
@@ -291,18 +329,25 @@ public class CategoryShopGui implements Listener {
 
                 if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
                     ItemStack stone = te.getEnhancementStone();
-                    stone.setAmount(amount);
-                    player.getInventory().addItem(stone);
+                    if (stone != null) {
+                        stone.setAmount(amount);
+                        player.getInventory().addItem(stone);
 
-                    String msg = plugin.getMessage("purchase-success")
-                            .replace("{item}", "§e⚒ 강화석")
-                            .replace("{amount}", String.valueOf(amount))
-                            .replace("{price}", plugin.getEconomyManager().format(totalPrice));
-                    player.sendMessage(plugin.getPrefix() + msg);
-                    playSound(player, "buy");
+                        String msg = plugin.getMessage("purchase-success")
+                                .replace("{item}", "§e⚒ 강화석")
+                                .replace("{amount}", String.valueOf(amount))
+                                .replace("{price}", plugin.getEconomyManager().format(totalPrice));
+                        player.sendMessage(plugin.getPrefix() + msg);
+                        playSound(player, "buy");
+                    }
+                    return; // 이미 있지만 확인
                 }
             }
         }
+
+        // 3. 아무것도 매칭되지 않음
+        player.sendMessage(plugin.getPrefix() + "§c이 아이템은 구매할 수 없습니다.");
+        playSound(player, "error");
     }
 
     /**
