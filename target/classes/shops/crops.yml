@@ -1,0 +1,66 @@
+# 작물 상점 아이템
+# buy-price: 구매 가격 (플레이어가 상점에서 구매)
+# sell-price: 판매 가격 (플레이어가 상점에 판매)
+
+items:
+  wheat:
+    material: WHEAT
+    name: "§e밀"
+    buy-price: 10
+    sell-price: 5
+    lore:
+      - "§7기본적인 작물입니다."
+
+  carrot:
+    material: CARROT
+    name: "§6당근"
+    buy-price: 15
+    sell-price: 7
+
+  potato:
+    material: POTATO
+    name: "§e감자"
+    buy-price: 15
+    sell-price: 7
+
+  beetroot:
+    material: BEETROOT
+    name: "§c비트"
+    buy-price: 20
+    sell-price: 10
+
+  melon_slice:
+    material: MELON_SLICE
+    name: "§a수박 조각"
+    buy-price: 25
+    sell-price: 12
+
+  pumpkin:
+    material: PUMPKIN
+    name: "§6호박"
+    buy-price: 30
+    sell-price: 15
+
+  sugar_cane:
+    material: SUGAR_CANE
+    name: "§f사탕수수"
+    buy-price: 20
+    sell-price: 10
+
+  bamboo:
+    material: BAMBOO
+    name: "§2대나무"
+    buy-price: 10
+    sell-price: 5
+
+  sweet_berries:
+    material: SWEET_BERRIES
+    name: "§c달콤한 열매"
+    buy-price: 30
+    sell-price: 15
+
+  glow_berries:
+    material: GLOW_BERRIES
+    name: "§e발광 열매"
+    buy-price: 50
+    sell-price: 25

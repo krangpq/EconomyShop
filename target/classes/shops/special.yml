@@ -1,0 +1,51 @@
+# 특별 아이템 상점
+# 구매만 가능, 판매 불가 (sell-price 없음)
+
+items:
+  ender_pearl:
+    material: ENDER_PEARL
+    name: "§5엔더 진주"
+    buy-price: 5000
+    lore:
+      - "§7순간이동에 사용됩니다."
+      - "§c판매 불가"
+
+  totem_of_undying:
+    material: TOTEM_OF_UNDYING
+    name: "§6불사의 토템"
+    buy-price: 50000
+    lore:
+      - "§7죽음으로부터 당신을 구합니다."
+      - "§c판매 불가"
+
+  nether_star:
+    material: NETHER_STAR
+    name: "§f네더의 별"
+    buy-price: 100000
+    lore:
+      - "§7위더를 처치하여 얻는 귀중한 아이템"
+      - "§c판매 불가"
+
+  elytra:
+    material: ELYTRA
+    name: "§f겉날개"
+    buy-price: 75000
+    lore:
+      - "§7하늘을 날 수 있습니다."
+      - "§c판매 불가"
+
+  trident:
+    material: TRIDENT
+    name: "§b삼지창"
+    buy-price: 30000
+    lore:
+      - "§7강력한 투척 무기입니다."
+      - "§c판매 불가"
+
+  enchanted_golden_apple:
+    material: ENCHANTED_GOLDEN_APPLE
+    name: "§6마법이 부여된 황금 사과"
+    buy-price: 20000
+    lore:
+      - "§7강력한 버프를 제공합니다."
+      - "§c판매 불가"

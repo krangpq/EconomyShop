@@ -1,0 +1,70 @@
+# 광물 상점 아이템
+
+items:
+  coal:
+    material: COAL
+    name: "§8석탄"
+    buy-price: 50
+    sell-price: 25
+
+  copper_ingot:
+    material: COPPER_INGOT
+    name: "§6구리 주괴"
+    buy-price: 100
+    sell-price: 50
+
+  iron_ingot:
+    material: IRON_INGOT
+    name: "§f철 주괴"
+    buy-price: 200
+    sell-price: 100
+
+  gold_ingot:
+    material: GOLD_INGOT
+    name: "§e금 주괴"
+    buy-price: 500
+    sell-price: 250
+
+  redstone:
+    material: REDSTONE
+    name: "§c레드스톤"
+    buy-price: 150
+    sell-price: 75
+
+  lapis_lazuli:
+    material: LAPIS_LAZULI
+    name: "§9청금석"
+    buy-price: 150
+    sell-price: 75
+
+  emerald:
+    material: EMERALD
+    name: "§a에메랄드"
+    buy-price: 1000
+    sell-price: 500
+
+  diamond:
+    material: DIAMOND
+    name: "§b다이아몬드"
+    buy-price: 2000
+    sell-price: 1000
+
+  netherite_ingot:
+    material: NETHERITE_INGOT
+    name: "§4네더라이트 주괴"
+    buy-price: 10000
+    sell-price: 5000
+    lore:
+      - "§7최고급 광물입니다."
+
+  quartz:
+    material: QUARTZ
+    name: "§f석영"
+    buy-price: 100
+    sell-price: 50
+
+  amethyst_shard:
+    material: AMETHYST_SHARD
+    name: "§d자수정 조각"
+    buy-price: 300
+    sell-price: 150
