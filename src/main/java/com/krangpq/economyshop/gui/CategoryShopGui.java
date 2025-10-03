@@ -278,6 +278,27 @@ public class CategoryShopGui implements Listener {
 
                         if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
                             ItemStack item = custom.getItem().clone();
+
+                            // GUI용 Lore 제거
+                            ItemMeta meta = item.getItemMeta();
+                            if (meta != null && meta.hasLore()) {
+                                List<String> lore = meta.getLore();
+                                List<String> cleanLore = new ArrayList<>();
+
+                                for (String line : lore) {
+                                    if (!line.contains("가격:") &&
+                                            !line.contains("클릭:") &&
+                                            !line.contains("━━━") &&
+                                            !line.contains("[커스텀 아이템]") &&
+                                            !line.contains("등록자:")) {
+                                        cleanLore.add(line);
+                                    }
+                                }
+
+                                meta.setLore(cleanLore.isEmpty() ? null : cleanLore);
+                                item.setItemMeta(meta);
+                            }
+
                             item.setAmount(amount);
                             player.getInventory().addItem(item);
 
@@ -300,36 +321,59 @@ public class CategoryShopGui implements Listener {
 
         // 2. ToolEnhancer 강화석 확인
         if (plugin.getIntegrationManager().hasToolEnhancer()) {
-            ToolEnhancerIntegration te = plugin.getIntegrationManager().getToolEnhancer();
-
-            // GUI 표시용 아이템인지 확인 (Lore에 "[ToolEnhancer 연동]"이 있으면)
-            boolean isShopGuiItem = false;
+            // 고유 태그로 강화석인지 확인
             if (displayItem.hasItemMeta() && displayItem.getItemMeta().hasLore()) {
                 List<String> lore = displayItem.getItemMeta().getLore();
+                boolean isEnhancementStone = false;
+
                 for (String line : lore) {
-                    if (line.contains("[ToolEnhancer 연동]")) {
-                        isShopGuiItem = true;
+                    if (line.contains("[ENHANCEMENT_STONE]")) {
+                        isEnhancementStone = true;
                         break;
                     }
                 }
-            }
 
-            // GUI 아이템이고 강화석이면 구매 처리
-            if (isShopGuiItem && te.isEnhancementStone(displayItem)) {
-                double price = plugin.getConfig().getDouble("integrations.toolenhancer.items.enhancement-stone.price", 5000);
-                double totalPrice = price * amount;
+                if (isEnhancementStone) {
+                    ToolEnhancerIntegration te = plugin.getIntegrationManager().getToolEnhancer();
+                    double price = plugin.getConfig().getDouble("integrations.toolenhancer.items.enhancement-stone.price", 5000);
+                    double totalPrice = price * amount;
 
-                if (!plugin.getEconomyManager().has(player.getUniqueId(), totalPrice)) {
-                    String msg = plugin.getMessage("insufficient-balance")
-                            .replace("{amount}", plugin.getEconomyManager().format(totalPrice));
-                    player.sendMessage(plugin.getPrefix() + msg);
-                    playSound(player, "error");
-                    return;
-                }
+                    if (!plugin.getEconomyManager().has(player.getUniqueId(), totalPrice)) {
+                        String msg = plugin.getMessage("insufficient-balance")
+                                .replace("{amount}", plugin.getEconomyManager().format(totalPrice));
+                        player.sendMessage(plugin.getPrefix() + msg);
+                        playSound(player, "error");
+                        return;
+                    }
 
-                if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
-                    ItemStack stone = te.getEnhancementStone();
-                    if (stone != null) {
+                    if (plugin.getEconomyManager().withdraw(player.getUniqueId(), totalPrice)) {
+                        // 순수한 강화석을 다시 생성 (GUI용이 아닌 원본)
+                        ItemStack stone = te.getEnhancementStone();
+
+                        // GUI용 Lore 제거 - 원본 강화석만 남김
+                        ItemMeta meta = stone.getItemMeta();
+                        if (meta != null && meta.hasLore()) {
+                            lore = meta.getLore();
+                            List<String> cleanLore = new ArrayList<>();
+
+                            // 원본 Lore만 유지 (가격, 클릭 설명 제외)
+                            for (String line : lore) {
+                                if (!line.contains("가격:") &&
+                                        !line.contains("클릭:") &&
+                                        !line.contains("━━━") &&
+                                        !line.contains("[ToolEnhancer 연동]") &&
+                                        !line.contains("[ENHANCEMENT_STONE]")) {
+                                    cleanLore.add(line);
+                                }
+                            }
+
+                            // [ENHANCEMENT_STONE] 태그는 다시 추가 (숨겨진 식별용)
+                            cleanLore.add("§8§l[ENHANCEMENT_STONE]");
+
+                            meta.setLore(cleanLore);
+                            stone.setItemMeta(meta);
+                        }
+
                         stone.setAmount(amount);
                         player.getInventory().addItem(stone);
 
@@ -339,8 +383,8 @@ public class CategoryShopGui implements Listener {
                                 .replace("{price}", plugin.getEconomyManager().format(totalPrice));
                         player.sendMessage(plugin.getPrefix() + msg);
                         playSound(player, "buy");
+                        return;
                     }
-                    return; // 이미 있지만 확인
                 }
             }
         }
